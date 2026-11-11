@@ -43,7 +43,7 @@ Note: AveOccup represents the average number of occupants per household in a blo
 11. Evaluate the model using Mean Squared Error (MSE) and R² score.
 12. Display actual and predicted values for the first five test samples.
 # 6. Python Program
-```
+```python
 """
 Program: SGD Regressor for Multivariate Linear Regression
 Aim: Predict median house value and average number of occupants
@@ -54,32 +54,26 @@ Register Number: 212225020017
 """
 
 import numpy as np
+
 from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import SGDRegressor
+from sklearn.linear_model import SGDRegressor, LinearRegression
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error
 
+housing = fetch_california_housing()
 
-# 1. Load the California Housing dataset
-data = fetch_california_housing()
+X = housing.data[:, :3]
 
-# Select the first three features as input
-X = data.data[:, :3]
+Y = np.column_stack((housing.target, housing.data[:, 6]))
 
-# Select house value and average occupants as targets
-Y = np.column_stack((data.target, data.data[:, 5]))
-
-print("Input shape:", X.shape)
-print("Target shape:", Y.shape)
-
-# 2. Split the dataset into training and testing sets
 X_train, X_test, Y_train, Y_test = train_test_split(
-    X, Y, test_size=0.2, random_state=42
+    X, Y,
+    test_size=0.2,
+    random_state=42
 )
 
-# 3. Scale the input features and target values
 scaler_X = StandardScaler()
 scaler_Y = StandardScaler()
 
@@ -88,40 +82,41 @@ X_test_scaled = scaler_X.transform(X_test)
 
 Y_train_scaled = scaler_Y.fit_transform(Y_train)
 
-# 4. Create and train the multi-output SGD Regressor
-sgd = SGDRegressor(
-    max_iter=1000,
-    tol=1e-3,
-    eta0=0.01,
-    learning_rate="constant",
+
+sgd = SGDRegressor(max_iter=1000, tol=1e-3, random_state=42)
+model = MultiOutputRegressor(sgd)
+
+model.fit(X_train_scaled, Y_train_scaled)
+
+Y_pred_scaled = model.predict(X_test_scaled)
+Y_pred = scaler_Y.inverse_transform(Y_pred_scaled)
+
+
+print("Actual Values:")
+print(Y_test[:10]) 
+
+print("\nPredicted Values:")
+print(Y_pred[:10]) 
+
+y = housing.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
     random_state=42
 )
 
-model = MultiOutputRegressor(sgd)
-model.fit(X_train_scaled, Y_train_scaled)
+X_train = scaler_X.fit_transform(X_train)
+X_test = scaler_X.transform(X_test)
 
-# 5. Predict the target values
-Y_pred_scaled = model.predict(X_test_scaled)
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+lr_pred = lr.predict(X_test)
 
-# Convert predictions back to the original units
-Y_pred = scaler_Y.inverse_transform(Y_pred_scaled)
-
-# 6. Evaluate the model
-mse = mean_squared_error(Y_test, Y_pred)
-r2 = r2_score(Y_test, Y_pred, multioutput="raw_values")
-
-print("\\nMean Squared Error:", mse)
-print("R2 Score for house price:", r2[0])
-print("R2 Score for average occupants:", r2[1])
-
-# 7. Display actual and predicted values for five test samples
-print("\\nFirst five predictions:")
-for i in range(5):
-    print("\\nExample", i + 1)
-    print("Actual house price:", Y_test[i, 0])
-    print("Predicted house price:", Y_pred[i, 0])
-    print("Actual average occupants:", Y_test[i, 1])
-    print("Predicted average occupants:", Y_pred[i, 1])
+sgd = SGDRegressor(max_iter=1000, tol=1e-3, random_state=42)
+sgd.fit(X_train, y_train)
+sgd_pred = sgd.predict(X_test)
 ```
 
 # 7. Explanation of Important Functions
@@ -136,12 +131,7 @@ for i in range(5):
 - r2_score() – Measures how well the model explains variation in the target values.
 - inverse_transform() – Converts standardized predictions back to their original scale.
 # 8. Output
-
-
-
-
-
-
+<img width="631" height="766" alt="Screenshot 2026-11-11 080047" src="https://github.com/user-attachments/assets/c74a05d4-7972-44f0-96d6-82739980a8a0" />
 
 
 
